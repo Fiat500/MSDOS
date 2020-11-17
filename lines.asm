@@ -6,10 +6,14 @@ TITLE "Open and Append File Example" ;b2
 
 	DATASEG
 	
-textBuffer db 1000 dup (36)
-charBuffer db 1000 dup (0)
+textBuffer db 10000 dup (255)
+stopper db 255
 
-filename db 'test.txt',0
+charBuffer db 10000 dup (0)
+
+
+
+filename db 'read.txt',0
 
 ErrorMsg db 'Error', 13, 10,'$'
 
@@ -32,7 +36,7 @@ proc read_file
 	;mov bx,ax
 	mov ah,3fh
     mov bx,[handle]
-    mov cx,1000
+    mov cx,10000
     mov dx,offset textBuffer
     int 21h
     jc error
@@ -48,6 +52,26 @@ proc error
 	ret
 endp error
 
+proc out_buffer
+	mov ah, 02h
+	mov di, offset textBuffer
+outLoop:
+	mov dl, [di]
+	inc di
+	cmp dl, 255
+	jz outFinish
+	push ax
+	push dx
+	push di
+	int 21h
+	pop di
+	pop dx
+	pop ax
+	jmp outLoop
+outFinish:
+	ret
+endp out_buffer
+
 proc out_string
 	mov al, 024h
 	mov dx,offset textBuffer
@@ -61,7 +85,7 @@ Start:
 	
 	call open_file
 	call read_file
-	call out_string
+	call out_buffer
 
 Exit: 
 	mov ah, 0       ; wait for keyboard press
