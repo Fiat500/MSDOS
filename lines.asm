@@ -9,7 +9,7 @@ TITLE "Open and Append File Example" ;b2
 textBuffer db 10000 dup (255)
 stopper db 255
 
-charBuffer db 10000 dup (0)
+lineBuffer db 200 dup (0)
 
 
 
@@ -42,6 +42,24 @@ proc read_file
     jc error
 	ret
 endp read_file
+
+proc read_line
+	mov al,0
+	mov di, offset textBuffer
+	mov si, offset lineBuffer
+lineLoop:
+	mov al, [di]
+	cmp al, 10
+	jz lineEnd
+	mov [si],al
+	inc si
+	inc di
+    jmp lineLoop
+lineEnd:
+	ret
+endp read_line
+
+
 
 
 
@@ -86,6 +104,7 @@ Start:
 	call open_file
 	call read_file
 	call out_buffer
+	call read_line
 
 Exit: 
 	mov ah, 0       ; wait for keyboard press
