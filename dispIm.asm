@@ -19,26 +19,69 @@ ScrLine db 320 dup (0)
 
 ErrorMsg db 'Error', 13, 10,'$'
 
-charBuffer db 256 dup (0)
+charBuffer db 300 dup (0)
 
 CODESEG
 
-proc getChar
+proc getChar2
 	mov ax, 0A000h
+    mov es, ax
+	mov di,64000
+	mov si,0
+	mov cx, 64000
+get_LoopIb:
+	mov al,[byte es:si]
+	mov [es:di], al
+	;mov [ byte es:di],8
+	;mov [byte si],255
+	inc si
+	dec di
+	dec cx
+	jnz get_LoopIb
+	
+	ret
+endp getChar2
+
+proc putChar
+	mov ax, 0A000h
+    mov es, ax
+	mov di,48000
+	mov si, offset charBuffer
+	mov ch, 18
+get_LoopOa:
+	mov cl, 15
+get_LoopIa:
+	mov al,[si]
+	mov [es:di],al
+	;mov [ byte es:di],8
+	inc si
+	inc di
+	dec cl
+	jnz get_LoopIa
+	add di,305
+	dec ch
+	jnz get_LoopOa
+	ret
+endp putChar
+
+proc getChar
+	mov ax, 08000h
     mov es, ax
 	mov di,0
 	mov si, offset charBuffer
-	mov ch, 15
+	mov ch, 18
 get_LoopO:
 	mov cl, 15
 get_LoopI:
 	mov al,[es:di]
 	mov [si], al
+	;mov [ byte es:di],8
+	;mov [byte si],255
 	inc si
 	inc di
 	dec cl
 	jnz get_LoopI
-	add di,304
+	add di,305
 	dec ch
 	jnz get_LoopO
 	ret
@@ -132,7 +175,7 @@ proc CopyBitmap
     ; Read the graphic line by line (200 lines in VGA format),
     ; displaying the lines from bottom to top.
 
-    mov ax, 0A000h
+    mov ax, 08000h ;0A000h
     mov es, ax
     mov cx,200
     PrintBMPLoop:
@@ -192,6 +235,7 @@ mov ds, ax
     call CopyBitmap
 	
 	call getChar
+	call putChar
 
     ; Wait for key press
     mov ah,1
