@@ -8,8 +8,10 @@ TITLE "Read and display file Example" ;z8
 ;----------- Equates
 
 filename db 'test.bmp',0
+textFile db 'vga.txt',0
 
 filehandle dw ?
+filePointer dw 4
 
 Header db 54 dup (0)
 
@@ -20,8 +22,52 @@ ScrLine db 320 dup (0)
 ErrorMsg db 'Error', 13, 10,'$'
 
 charBuffer db 300 dup (0)
+fileBuffer db 1000 dup ('$')
 
 CODESEG
+
+proc createFile
+	mov si, offset charBuffer
+	mov di, offset fileBuffer
+	mov cx,288
+cf_loop:
+	mov al, [si]
+	cmp al, '$'
+	;jz cf_end
+	add al, 48
+	mov [di],al
+	inc si
+	inc di
+	dec cx
+	jnz cf_loop
+cf_end:	
+	ret
+endp createFile
+
+proc writeFile
+            push ax bx cx dx
+
+            ;open file
+            mov dx, offset textFile
+            mov cx, 0
+            mov ah,3ch
+            int 21h
+            mov [filePointer], ax
+
+            ;write to file
+            mov dx, offset  fileBuffer ;dataToWrite ;data
+            mov cx, 300 ;DATA_TO_WRITE_LEN  ;size of data
+            mov bx, [filePointer]
+            mov ah, 40h
+            int 21h
+
+            ;close file
+            mov bx, [filePointer]
+            mov ah, 3eh
+            int 21h 
+            pop dx cx bx ax
+            ret
+endp writeFile
 
 proc getChar2
 	mov ax, 0A000h
@@ -84,6 +130,7 @@ get_LoopI:
 	add di,305
 	dec ch
 	jnz get_LoopO
+	mov [byte si], '$'
 	ret
 endp getChar
 
@@ -236,6 +283,9 @@ mov ds, ax
 	
 	call getChar
 	call putChar
+	
+	call createFile
+	call writeFile
 
     ; Wait for key press
     mov ah,1
