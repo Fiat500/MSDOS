@@ -26,6 +26,33 @@ fileBuffer db 1000 dup ('$')
 
 CODESEG
 
+proc hexNum
+	push ax
+	and al,15
+	cmp al,9
+	jg numHex1
+	add al,48
+	mov [di],al
+	jp nextNum
+numHex1:
+	add al,55
+	mov [di],al
+nextNum:
+	inc di
+	pop ax
+	shr al, 4
+	cmp al,9
+	jg numHex1b
+	add al,48
+	mov [di],al
+	jp hexEnd
+numHex1b:
+	add al,55
+	mov [di],al
+hexEnd:
+	ret
+endp hexNum
+
 proc createFile
 	mov si, offset charBuffer
 	mov di, offset fileBuffer
@@ -33,8 +60,11 @@ proc createFile
 cf_loop:
 	mov al, [si]
 	cmp al, '$'
+	call hexNum
 	;jz cf_end
-	add al, 48
+	;add al, 48
+	inc di
+	mov al,','
 	mov [di],al
 	inc si
 	inc di
