@@ -22,6 +22,7 @@ ScrLine db 320 dup (0)
 ErrorMsg db 'Error', 13, 10,'$'
 
 charBuffer db 300 dup (0)
+char1Buffer db 300 dup (0)
 fileBuffer db 1000 dup ('$')
 
 CODESEG
@@ -100,29 +101,56 @@ proc writeFile
 endp writeFile
 
 proc getChar2
-	mov ax, 0A000h
+	mov ax, 08000h
     mov es, ax
-	mov di,64000
-	mov si,0
-	mov cx, 64000
-get_LoopIb:
-	mov al,[byte es:si]
-	mov [es:di], al
+	mov di,33
+	mov si, offset char1Buffer
+	mov ch, 18
+get_LoopO2a:
+	mov cl, 15
+get_LoopI2a:
+	mov al,[es:di]
+	mov [si], al
 	;mov [ byte es:di],8
 	;mov [byte si],255
 	inc si
-	dec di
-	dec cx
-	jnz get_LoopIb
-	
+	inc di
+	dec cl
+	jnz get_LoopI2a
+	add di,305
+	dec ch
+	jnz get_LoopO2a
+	mov [byte si], '$'
 	ret
 endp getChar2
+
+proc putChar2
+	mov ax, 0A000h
+    mov es, ax
+	;mov di,48000
+	mov si, offset charBuffer
+	mov ch, 18
+get_LoopOa2:
+	mov cl, 15
+get_LoopIa2:
+	mov al,[si]
+	mov [es:di],al
+	;mov [ byte es:di],8
+	inc si
+	inc di
+	dec cl
+	jnz get_LoopIa2
+	add di,305
+	dec ch
+	jnz get_LoopOa2
+	ret
+endp putChar2
 
 proc putChar
 	mov ax, 0A000h
     mov es, ax
-	mov di,48000
-	mov si, offset charBuffer
+	;mov di,48000
+	mov si, offset char1Buffer
 	mov ch, 18
 get_LoopOa:
 	mov cl, 15
@@ -312,7 +340,18 @@ mov ds, ax
     call CopyBitmap
 	
 	call getChar
+	mov di,48000
+	call getChar2
+	
 	call putChar
+	mov di,32000
+	call putChar
+	
+	mov di,15400
+	call putChar
+	
+	mov di,16400
+	call putChar2
 	
 	call createFile
 	call writeFile
