@@ -23,14 +23,43 @@ ErrorMsg db 'Error', 13, 10,'$'
 
 charBuffer db 300 dup (0)
 char1Buffer db 300 dup (0)
+char2Buffer db 255, 165, 255, 165,  255, 124, 255, 34,  255, 100, 255, 100,  255, 100, 255, 100,  255, 100, 255, 100,  255, 100, 255, 100,  255, 100, 255, 100,  255, 100, 255, 100
 fileBuffer db 1000 dup ('$')
 
 CODESEG
 
 proc hexNum
 	push ax
+	;and al,240  ;clear ist 4 bits
+	shr al, 4
+	cmp al,9  ;9
+	jg numHex1a
+	add al,48
+	mov [di],al
+	jp nextNum1
+numHex1a:
+	add al,55
+	mov [di],al
+nextNum1:
+	inc di
+	pop ax
 	and al,15
 	cmp al,9
+	jg numHex1b1
+	add al,48
+	mov [di],al
+	jp hexEnd1
+numHex1b1:
+	add al,55
+	mov [di],al
+hexEnd1:
+	ret
+endp hexNum
+
+proc hexNum1
+	push ax
+	and al,15
+	cmp al,10  ;9
 	jg numHex1
 	add al,48
 	mov [di],al
@@ -42,6 +71,7 @@ nextNum:
 	inc di
 	pop ax
 	shr al, 4
+	and al,15
 	cmp al,9
 	jg numHex1b
 	add al,48
@@ -52,10 +82,10 @@ numHex1b:
 	mov [di],al
 hexEnd:
 	ret
-endp hexNum
+endp hexNum1
 
 proc createFile
-	mov si, offset charBuffer
+	mov si, offset char2Buffer
 	mov di, offset fileBuffer
 	mov cx,288
 cf_loop:
