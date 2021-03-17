@@ -7,7 +7,7 @@ TITLE "Read and display file Example"  ;z9
 	DATASEG
 ;----------- Equates
 
-
+keyPressed db 1 dup (0)
 
 CODESEG
 
@@ -19,7 +19,7 @@ proc SCAN_NUM
         PUSH    DX
         PUSH    AX
         PUSH    SI
-        
+        mov 	di, offset keyPressed
         MOV     CX, 0
 
         ; reset flag:
@@ -31,9 +31,8 @@ next_digit:
         ; into AL:
         MOV     AH, 00h
         INT     16h
-        ; and print it:
-        MOV     AH, 0Eh
-        INT     10h
+		mov 	[di],al
+        
 
        
         POP     SI
@@ -42,11 +41,31 @@ next_digit:
         RET
 endp SCAN_NUM  
 
+proc print_chr
+		PUSH    DX
+        PUSH    AX
+        PUSH    SI
+        mov 	di, offset keyPressed
+		mov 	al, [di]
+		; and print it:
+		sub 	al,32 ;change case
+        MOV     AH, 0Eh
+        INT     10h
+		
+		POP     SI
+        POP     AX
+        POP     DX
+		
+	ret
+endp print_chr 
+
 Start:
 	mov	ax, @data
 	mov ds, ax
 	
 	call SCAN_NUM  
+	call print_chr
+	call SCAN_NUM
 
 Exit: 
 	mov ah, 0       ; wait for keyboard press
