@@ -62,10 +62,13 @@ endp print_chr
 Start:
 	mov	ax, @data
 	mov ds, ax
-	
+check_char:	
 	call SCAN_NUM  
+	;cmp al, 98
+	;jnz check_char
+	
 	call print_chr
-	call SCAN_NUM
+	
 
 Exit: 
 	mov ah, 0       ; wait for keyboard press
